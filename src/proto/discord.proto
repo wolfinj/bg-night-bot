@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+package discord;
+
+service DiscordBot {
+  rpc GetChannels (Empty) returns (ChannelList) {}
+  rpc SendMessage (MessageRequest) returns (MessageResponse) {}
+  rpc DeleteMessage (DeleteMessageRequest) returns (DeleteMessageResponse) {}
+}
+
+message Empty {}
+
+message Channel {
+  string id = 1;  // Snowflake
+  string name = 2;
+  string type = 3;
+}
+
+message ChannelList {
+  repeated Channel channels = 1;
+}
+
+message MessageRequest {
+  string channel_id = 1;  // Snowflake
+  string content = 2;
+}
+
+message MessageResponse {
+  bool success = 1;
+  string message = 2;
+  string message_id = 3;
+}
+
+message DeleteMessageRequest {
+  string channel_id = 1;
+  string message_id = 2;
+}
+
+message DeleteMessageResponse {
+  bool success = 1;
+  string message = 2;
+}
