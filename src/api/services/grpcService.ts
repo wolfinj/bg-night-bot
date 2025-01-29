@@ -2,9 +2,8 @@ import * as grpc from "@grpc/grpc-js";
 
 import {deleteChannelMessage, getAvailableChannels, sendChannelMessage} from "../../bot/services/messageService";
 import { auth } from '../middleware/authMiddleware';
-import {ServerWritableStreamImpl} from "@grpc/grpc-js/build/src/server-call";
 
-export const getChannels = async (call: ServerWritableStreamImpl, any>, callback: any) => {
+export const getChannels = async (call: any, callback: any) => {
     if (!await auth(call, callback)) return;
     const channels = getAvailableChannels();
     callback(null, { channels });
