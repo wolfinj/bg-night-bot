@@ -10,12 +10,12 @@ export const sendChannelMessage = async (channelId: string, content: string) => 
         console.log("Sent message data:", {
             success: true,
             message: "Message sent successfully",
-            message_id: sentMessage.id // This matches our proto definition message_id
+            messageId: sentMessage.id // This matches our proto definition message_id
         });
         return {
             success: true,
             message: "Message sent successfully",
-            message_id: sentMessage.id // Changed to match proto definition
+            messageId: sentMessage.id // Changed to match proto definition
         };
     }
     throw new Error("Invalid channel type");
@@ -27,7 +27,7 @@ export const getAvailableChannels = () => {
         .map(channel => ({
             id: channel.id,
             name: channel.name,
-            type: channel.type
+            type: channel.type.toString()
         }));
 };
 

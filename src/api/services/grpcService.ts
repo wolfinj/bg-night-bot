@@ -1,19 +1,35 @@
 import * as grpc from "@grpc/grpc-js";
+import {ServerUnaryCall, handleUnaryCall, sendUnaryData} from "@grpc/grpc-js";
 
 import {deleteChannelMessage, getAvailableChannels, sendChannelMessage} from "../../bot/services/messageService";
-import { auth } from '../middleware/authMiddleware';
+import {
+    ChannelList,
+    DeleteMessageRequest,
+    DeleteMessageResponse,
+    Empty,
+    MessageRequest,
+    MessageResponse
+} from "../../generated/discord";
+import {auth} from "../middleware/authMiddleware";
 
-export const getChannels = async (call: any, callback: any) => {
-    if (!await auth(call, callback)) return;
+
+export const getChannels: handleUnaryCall<Empty, ChannelList> = async (
+    call,
+    callback) => {
+    if (!await auth<Empty, ChannelList>(call, callback)) return;
     const channels = getAvailableChannels();
-    callback(null, { channels });
+    callback(null, {channels});
 };
 
-export const sendMessage = async (call: any, callback: any) => {
-    const {channel_id, content} = call.request;
+export const sendMessage: handleUnaryCall<MessageRequest, MessageResponse> = async (
+    call: ServerUnaryCall<MessageRequest, MessageResponse>,
+    callback: sendUnaryData<MessageResponse>) => {
+    if (!await auth<MessageRequest, MessageResponse>(call, callback)) return;
+
+    const {channelId, content} = call.request;
 
     try {
-        const result = await sendChannelMessage(channel_id, content);
+        const result = await sendChannelMessage(channelId, content);
         console.log("Result:", result);
         callback(null, result);
     } catch (error) {
@@ -31,11 +47,13 @@ export const sendMessage = async (call: any, callback: any) => {
     }
 };
 
-export const deleteMessage = async (call: any, callback: any) => {
-    const {channel_id, message_id} = call.request;
+export const deleteMessage: handleUnaryCall<DeleteMessageRequest, DeleteMessageResponse> = async (call, callback) => {
+    if (!await auth<DeleteMessageRequest, DeleteMessageResponse>(call, callback)) return;
+
+    const {channelId, messageId} = call.request;
 
     try {
-        const result = await deleteChannelMessage(channel_id, message_id);
+        const result = await deleteChannelMessage(channelId, messageId);
         callback(null, result);
     } catch (error) {
         if (error instanceof Error) {

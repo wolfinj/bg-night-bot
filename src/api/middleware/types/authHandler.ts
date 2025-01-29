@@ -1,5 +1,6 @@
-export interface AuthHandler {
-    validateRequest(call: any): Promise<boolean>;
+import { ServerUnaryCall, sendUnaryData } from "@grpc/grpc-js";
 
-    handleError(callback: any): void;
+export interface AuthHandler<RequestType, ResponseType> {
+    validateRequest(call: ServerUnaryCall<RequestType, ResponseType>): Promise<boolean>;
+    handleError(callback: sendUnaryData<ResponseType>): void;
 }
