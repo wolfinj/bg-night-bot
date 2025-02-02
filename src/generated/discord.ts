@@ -24,18 +24,41 @@ export const protobufPackage = "discord";
 export interface Empty {
 }
 
-export interface Channel {
+export interface BotGuildList {
+  guilds: BotGuild[];
+}
+
+export interface ChannelRequest {
+  /** Snowflake */
+  guildId: string;
+}
+
+export interface BotGuild {
+  id: string;
+  name: string;
+  memberCount: number;
+  ownerId: string;
+  icon?: string | undefined;
+  description?: string | undefined;
+  createdAt: string;
+}
+
+export interface BotChannel {
   /** Snowflake */
   id: string;
   name: string;
   type: string;
+  typeName: string;
+  topic?: string | undefined;
 }
 
-export interface ChannelList {
-  channels: Channel[];
+export interface BotChannelList {
+  channels: BotChannel[];
 }
 
-export interface MessageRequest {
+export interface SendMessageRequest {
+  /** Snowflake */
+  guildId: string;
   /** Snowflake */
   channelId: string;
   content: string;
@@ -48,6 +71,9 @@ export interface MessageResponse {
 }
 
 export interface DeleteMessageRequest {
+  /** Snowflake */
+  guildId: string;
+  /** Snowflake */
   channelId: string;
   messageId: string;
 }
@@ -100,12 +126,286 @@ export const Empty: MessageFns<Empty> = {
   },
 };
 
-function createBaseChannel(): Channel {
-  return { id: "", name: "", type: "" };
+function createBaseBotGuildList(): BotGuildList {
+  return { guilds: [] };
 }
 
-export const Channel: MessageFns<Channel> = {
-  encode(message: Channel, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+export const BotGuildList: MessageFns<BotGuildList> = {
+  encode(message: BotGuildList, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    for (const v of message.guilds) {
+      BotGuild.encode(v!, writer.uint32(10).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): BotGuildList {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseBotGuildList();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.guilds.push(BotGuild.decode(reader, reader.uint32()));
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): BotGuildList {
+    return {
+      guilds: globalThis.Array.isArray(object?.guilds) ? object.guilds.map((e: any) => BotGuild.fromJSON(e)) : [],
+    };
+  },
+
+  toJSON(message: BotGuildList): unknown {
+    const obj: any = {};
+    if (message.guilds?.length) {
+      obj.guilds = message.guilds.map((e) => BotGuild.toJSON(e));
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<BotGuildList>, I>>(base?: I): BotGuildList {
+    return BotGuildList.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<BotGuildList>, I>>(object: I): BotGuildList {
+    const message = createBaseBotGuildList();
+    message.guilds = object.guilds?.map((e) => BotGuild.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseChannelRequest(): ChannelRequest {
+  return { guildId: "" };
+}
+
+export const ChannelRequest: MessageFns<ChannelRequest> = {
+  encode(message: ChannelRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.guildId !== "") {
+      writer.uint32(10).string(message.guildId);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): ChannelRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseChannelRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.guildId = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ChannelRequest {
+    return { guildId: isSet(object.guildId) ? globalThis.String(object.guildId) : "" };
+  },
+
+  toJSON(message: ChannelRequest): unknown {
+    const obj: any = {};
+    if (message.guildId !== "") {
+      obj.guildId = message.guildId;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ChannelRequest>, I>>(base?: I): ChannelRequest {
+    return ChannelRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ChannelRequest>, I>>(object: I): ChannelRequest {
+    const message = createBaseChannelRequest();
+    message.guildId = object.guildId ?? "";
+    return message;
+  },
+};
+
+function createBaseBotGuild(): BotGuild {
+  return { id: "", name: "", memberCount: 0, ownerId: "", icon: undefined, description: undefined, createdAt: "" };
+}
+
+export const BotGuild: MessageFns<BotGuild> = {
+  encode(message: BotGuild, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.id !== "") {
+      writer.uint32(10).string(message.id);
+    }
+    if (message.name !== "") {
+      writer.uint32(18).string(message.name);
+    }
+    if (message.memberCount !== 0) {
+      writer.uint32(24).int32(message.memberCount);
+    }
+    if (message.ownerId !== "") {
+      writer.uint32(34).string(message.ownerId);
+    }
+    if (message.icon !== undefined) {
+      writer.uint32(42).string(message.icon);
+    }
+    if (message.description !== undefined) {
+      writer.uint32(50).string(message.description);
+    }
+    if (message.createdAt !== "") {
+      writer.uint32(58).string(message.createdAt);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): BotGuild {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseBotGuild();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.id = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.name = reader.string();
+          continue;
+        }
+        case 3: {
+          if (tag !== 24) {
+            break;
+          }
+
+          message.memberCount = reader.int32();
+          continue;
+        }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
+          message.ownerId = reader.string();
+          continue;
+        }
+        case 5: {
+          if (tag !== 42) {
+            break;
+          }
+
+          message.icon = reader.string();
+          continue;
+        }
+        case 6: {
+          if (tag !== 50) {
+            break;
+          }
+
+          message.description = reader.string();
+          continue;
+        }
+        case 7: {
+          if (tag !== 58) {
+            break;
+          }
+
+          message.createdAt = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): BotGuild {
+    return {
+      id: isSet(object.id) ? globalThis.String(object.id) : "",
+      name: isSet(object.name) ? globalThis.String(object.name) : "",
+      memberCount: isSet(object.memberCount) ? globalThis.Number(object.memberCount) : 0,
+      ownerId: isSet(object.ownerId) ? globalThis.String(object.ownerId) : "",
+      icon: isSet(object.icon) ? globalThis.String(object.icon) : undefined,
+      description: isSet(object.description) ? globalThis.String(object.description) : undefined,
+      createdAt: isSet(object.createdAt) ? globalThis.String(object.createdAt) : "",
+    };
+  },
+
+  toJSON(message: BotGuild): unknown {
+    const obj: any = {};
+    if (message.id !== "") {
+      obj.id = message.id;
+    }
+    if (message.name !== "") {
+      obj.name = message.name;
+    }
+    if (message.memberCount !== 0) {
+      obj.memberCount = Math.round(message.memberCount);
+    }
+    if (message.ownerId !== "") {
+      obj.ownerId = message.ownerId;
+    }
+    if (message.icon !== undefined) {
+      obj.icon = message.icon;
+    }
+    if (message.description !== undefined) {
+      obj.description = message.description;
+    }
+    if (message.createdAt !== "") {
+      obj.createdAt = message.createdAt;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<BotGuild>, I>>(base?: I): BotGuild {
+    return BotGuild.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<BotGuild>, I>>(object: I): BotGuild {
+    const message = createBaseBotGuild();
+    message.id = object.id ?? "";
+    message.name = object.name ?? "";
+    message.memberCount = object.memberCount ?? 0;
+    message.ownerId = object.ownerId ?? "";
+    message.icon = object.icon ?? undefined;
+    message.description = object.description ?? undefined;
+    message.createdAt = object.createdAt ?? "";
+    return message;
+  },
+};
+
+function createBaseBotChannel(): BotChannel {
+  return { id: "", name: "", type: "", typeName: "", topic: undefined };
+}
+
+export const BotChannel: MessageFns<BotChannel> = {
+  encode(message: BotChannel, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.id !== "") {
       writer.uint32(10).string(message.id);
     }
@@ -115,13 +415,19 @@ export const Channel: MessageFns<Channel> = {
     if (message.type !== "") {
       writer.uint32(26).string(message.type);
     }
+    if (message.typeName !== "") {
+      writer.uint32(34).string(message.typeName);
+    }
+    if (message.topic !== undefined) {
+      writer.uint32(42).string(message.topic);
+    }
     return writer;
   },
 
-  decode(input: BinaryReader | Uint8Array, length?: number): Channel {
+  decode(input: BinaryReader | Uint8Array, length?: number): BotChannel {
     const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseChannel();
+    const message = createBaseBotChannel();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -149,6 +455,22 @@ export const Channel: MessageFns<Channel> = {
           message.type = reader.string();
           continue;
         }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
+          message.typeName = reader.string();
+          continue;
+        }
+        case 5: {
+          if (tag !== 42) {
+            break;
+          }
+
+          message.topic = reader.string();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -158,15 +480,17 @@ export const Channel: MessageFns<Channel> = {
     return message;
   },
 
-  fromJSON(object: any): Channel {
+  fromJSON(object: any): BotChannel {
     return {
       id: isSet(object.id) ? globalThis.String(object.id) : "",
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       type: isSet(object.type) ? globalThis.String(object.type) : "",
+      typeName: isSet(object.typeName) ? globalThis.String(object.typeName) : "",
+      topic: isSet(object.topic) ? globalThis.String(object.topic) : undefined,
     };
   },
 
-  toJSON(message: Channel): unknown {
+  toJSON(message: BotChannel): unknown {
     const obj: any = {};
     if (message.id !== "") {
       obj.id = message.id;
@@ -177,37 +501,45 @@ export const Channel: MessageFns<Channel> = {
     if (message.type !== "") {
       obj.type = message.type;
     }
+    if (message.typeName !== "") {
+      obj.typeName = message.typeName;
+    }
+    if (message.topic !== undefined) {
+      obj.topic = message.topic;
+    }
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<Channel>, I>>(base?: I): Channel {
-    return Channel.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<BotChannel>, I>>(base?: I): BotChannel {
+    return BotChannel.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<Channel>, I>>(object: I): Channel {
-    const message = createBaseChannel();
+  fromPartial<I extends Exact<DeepPartial<BotChannel>, I>>(object: I): BotChannel {
+    const message = createBaseBotChannel();
     message.id = object.id ?? "";
     message.name = object.name ?? "";
     message.type = object.type ?? "";
+    message.typeName = object.typeName ?? "";
+    message.topic = object.topic ?? undefined;
     return message;
   },
 };
 
-function createBaseChannelList(): ChannelList {
+function createBaseBotChannelList(): BotChannelList {
   return { channels: [] };
 }
 
-export const ChannelList: MessageFns<ChannelList> = {
-  encode(message: ChannelList, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+export const BotChannelList: MessageFns<BotChannelList> = {
+  encode(message: BotChannelList, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     for (const v of message.channels) {
-      Channel.encode(v!, writer.uint32(10).fork()).join();
+      BotChannel.encode(v!, writer.uint32(10).fork()).join();
     }
     return writer;
   },
 
-  decode(input: BinaryReader | Uint8Array, length?: number): ChannelList {
+  decode(input: BinaryReader | Uint8Array, length?: number): BotChannelList {
     const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseChannelList();
+    const message = createBaseBotChannelList();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -216,7 +548,7 @@ export const ChannelList: MessageFns<ChannelList> = {
             break;
           }
 
-          message.channels.push(Channel.decode(reader, reader.uint32()));
+          message.channels.push(BotChannel.decode(reader, reader.uint32()));
           continue;
         }
       }
@@ -228,49 +560,54 @@ export const ChannelList: MessageFns<ChannelList> = {
     return message;
   },
 
-  fromJSON(object: any): ChannelList {
+  fromJSON(object: any): BotChannelList {
     return {
-      channels: globalThis.Array.isArray(object?.channels) ? object.channels.map((e: any) => Channel.fromJSON(e)) : [],
+      channels: globalThis.Array.isArray(object?.channels)
+        ? object.channels.map((e: any) => BotChannel.fromJSON(e))
+        : [],
     };
   },
 
-  toJSON(message: ChannelList): unknown {
+  toJSON(message: BotChannelList): unknown {
     const obj: any = {};
     if (message.channels?.length) {
-      obj.channels = message.channels.map((e) => Channel.toJSON(e));
+      obj.channels = message.channels.map((e) => BotChannel.toJSON(e));
     }
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<ChannelList>, I>>(base?: I): ChannelList {
-    return ChannelList.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<BotChannelList>, I>>(base?: I): BotChannelList {
+    return BotChannelList.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<ChannelList>, I>>(object: I): ChannelList {
-    const message = createBaseChannelList();
-    message.channels = object.channels?.map((e) => Channel.fromPartial(e)) || [];
+  fromPartial<I extends Exact<DeepPartial<BotChannelList>, I>>(object: I): BotChannelList {
+    const message = createBaseBotChannelList();
+    message.channels = object.channels?.map((e) => BotChannel.fromPartial(e)) || [];
     return message;
   },
 };
 
-function createBaseMessageRequest(): MessageRequest {
-  return { channelId: "", content: "" };
+function createBaseSendMessageRequest(): SendMessageRequest {
+  return { guildId: "", channelId: "", content: "" };
 }
 
-export const MessageRequest: MessageFns<MessageRequest> = {
-  encode(message: MessageRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+export const SendMessageRequest: MessageFns<SendMessageRequest> = {
+  encode(message: SendMessageRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.guildId !== "") {
+      writer.uint32(10).string(message.guildId);
+    }
     if (message.channelId !== "") {
-      writer.uint32(10).string(message.channelId);
+      writer.uint32(18).string(message.channelId);
     }
     if (message.content !== "") {
-      writer.uint32(18).string(message.content);
+      writer.uint32(26).string(message.content);
     }
     return writer;
   },
 
-  decode(input: BinaryReader | Uint8Array, length?: number): MessageRequest {
+  decode(input: BinaryReader | Uint8Array, length?: number): SendMessageRequest {
     const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseMessageRequest();
+    const message = createBaseSendMessageRequest();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -279,11 +616,19 @@ export const MessageRequest: MessageFns<MessageRequest> = {
             break;
           }
 
-          message.channelId = reader.string();
+          message.guildId = reader.string();
           continue;
         }
         case 2: {
           if (tag !== 18) {
+            break;
+          }
+
+          message.channelId = reader.string();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
             break;
           }
 
@@ -299,15 +644,19 @@ export const MessageRequest: MessageFns<MessageRequest> = {
     return message;
   },
 
-  fromJSON(object: any): MessageRequest {
+  fromJSON(object: any): SendMessageRequest {
     return {
+      guildId: isSet(object.guildId) ? globalThis.String(object.guildId) : "",
       channelId: isSet(object.channelId) ? globalThis.String(object.channelId) : "",
       content: isSet(object.content) ? globalThis.String(object.content) : "",
     };
   },
 
-  toJSON(message: MessageRequest): unknown {
+  toJSON(message: SendMessageRequest): unknown {
     const obj: any = {};
+    if (message.guildId !== "") {
+      obj.guildId = message.guildId;
+    }
     if (message.channelId !== "") {
       obj.channelId = message.channelId;
     }
@@ -317,11 +666,12 @@ export const MessageRequest: MessageFns<MessageRequest> = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<MessageRequest>, I>>(base?: I): MessageRequest {
-    return MessageRequest.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<SendMessageRequest>, I>>(base?: I): SendMessageRequest {
+    return SendMessageRequest.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<MessageRequest>, I>>(object: I): MessageRequest {
-    const message = createBaseMessageRequest();
+  fromPartial<I extends Exact<DeepPartial<SendMessageRequest>, I>>(object: I): SendMessageRequest {
+    const message = createBaseSendMessageRequest();
+    message.guildId = object.guildId ?? "";
     message.channelId = object.channelId ?? "";
     message.content = object.content ?? "";
     return message;
@@ -421,16 +771,19 @@ export const MessageResponse: MessageFns<MessageResponse> = {
 };
 
 function createBaseDeleteMessageRequest(): DeleteMessageRequest {
-  return { channelId: "", messageId: "" };
+  return { guildId: "", channelId: "", messageId: "" };
 }
 
 export const DeleteMessageRequest: MessageFns<DeleteMessageRequest> = {
   encode(message: DeleteMessageRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.guildId !== "") {
+      writer.uint32(10).string(message.guildId);
+    }
     if (message.channelId !== "") {
-      writer.uint32(10).string(message.channelId);
+      writer.uint32(18).string(message.channelId);
     }
     if (message.messageId !== "") {
-      writer.uint32(18).string(message.messageId);
+      writer.uint32(26).string(message.messageId);
     }
     return writer;
   },
@@ -447,11 +800,19 @@ export const DeleteMessageRequest: MessageFns<DeleteMessageRequest> = {
             break;
           }
 
-          message.channelId = reader.string();
+          message.guildId = reader.string();
           continue;
         }
         case 2: {
           if (tag !== 18) {
+            break;
+          }
+
+          message.channelId = reader.string();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
             break;
           }
 
@@ -469,6 +830,7 @@ export const DeleteMessageRequest: MessageFns<DeleteMessageRequest> = {
 
   fromJSON(object: any): DeleteMessageRequest {
     return {
+      guildId: isSet(object.guildId) ? globalThis.String(object.guildId) : "",
       channelId: isSet(object.channelId) ? globalThis.String(object.channelId) : "",
       messageId: isSet(object.messageId) ? globalThis.String(object.messageId) : "",
     };
@@ -476,6 +838,9 @@ export const DeleteMessageRequest: MessageFns<DeleteMessageRequest> = {
 
   toJSON(message: DeleteMessageRequest): unknown {
     const obj: any = {};
+    if (message.guildId !== "") {
+      obj.guildId = message.guildId;
+    }
     if (message.channelId !== "") {
       obj.channelId = message.channelId;
     }
@@ -490,6 +855,7 @@ export const DeleteMessageRequest: MessageFns<DeleteMessageRequest> = {
   },
   fromPartial<I extends Exact<DeepPartial<DeleteMessageRequest>, I>>(object: I): DeleteMessageRequest {
     const message = createBaseDeleteMessageRequest();
+    message.guildId = object.guildId ?? "";
     message.channelId = object.channelId ?? "";
     message.messageId = object.messageId ?? "";
     return message;
@@ -574,21 +940,30 @@ export const DeleteMessageResponse: MessageFns<DeleteMessageResponse> = {
 
 export type DiscordBotService = typeof DiscordBotService;
 export const DiscordBotService = {
-  getChannels: {
-    path: "/discord.DiscordBot/GetChannels",
+  getGuilds: {
+    path: "/discord.DiscordBot/GetGuilds",
     requestStream: false,
     responseStream: false,
     requestSerialize: (value: Empty) => Buffer.from(Empty.encode(value).finish()),
     requestDeserialize: (value: Buffer) => Empty.decode(value),
-    responseSerialize: (value: ChannelList) => Buffer.from(ChannelList.encode(value).finish()),
-    responseDeserialize: (value: Buffer) => ChannelList.decode(value),
+    responseSerialize: (value: BotGuildList) => Buffer.from(BotGuildList.encode(value).finish()),
+    responseDeserialize: (value: Buffer) => BotGuildList.decode(value),
+  },
+  getChannels: {
+    path: "/discord.DiscordBot/GetChannels",
+    requestStream: false,
+    responseStream: false,
+    requestSerialize: (value: ChannelRequest) => Buffer.from(ChannelRequest.encode(value).finish()),
+    requestDeserialize: (value: Buffer) => ChannelRequest.decode(value),
+    responseSerialize: (value: BotChannelList) => Buffer.from(BotChannelList.encode(value).finish()),
+    responseDeserialize: (value: Buffer) => BotChannelList.decode(value),
   },
   sendMessage: {
     path: "/discord.DiscordBot/SendMessage",
     requestStream: false,
     responseStream: false,
-    requestSerialize: (value: MessageRequest) => Buffer.from(MessageRequest.encode(value).finish()),
-    requestDeserialize: (value: Buffer) => MessageRequest.decode(value),
+    requestSerialize: (value: SendMessageRequest) => Buffer.from(SendMessageRequest.encode(value).finish()),
+    requestDeserialize: (value: Buffer) => SendMessageRequest.decode(value),
     responseSerialize: (value: MessageResponse) => Buffer.from(MessageResponse.encode(value).finish()),
     responseDeserialize: (value: Buffer) => MessageResponse.decode(value),
   },
@@ -604,35 +979,51 @@ export const DiscordBotService = {
 } as const;
 
 export interface DiscordBotServer extends UntypedServiceImplementation {
-  getChannels: handleUnaryCall<Empty, ChannelList>;
-  sendMessage: handleUnaryCall<MessageRequest, MessageResponse>;
+  getGuilds: handleUnaryCall<Empty, BotGuildList>;
+  getChannels: handleUnaryCall<ChannelRequest, BotChannelList>;
+  sendMessage: handleUnaryCall<SendMessageRequest, MessageResponse>;
   deleteMessage: handleUnaryCall<DeleteMessageRequest, DeleteMessageResponse>;
 }
 
 export interface DiscordBotClient extends Client {
-  getChannels(request: Empty, callback: (error: ServiceError | null, response: ChannelList) => void): ClientUnaryCall;
-  getChannels(
+  getGuilds(request: Empty, callback: (error: ServiceError | null, response: BotGuildList) => void): ClientUnaryCall;
+  getGuilds(
     request: Empty,
     metadata: Metadata,
-    callback: (error: ServiceError | null, response: ChannelList) => void,
+    callback: (error: ServiceError | null, response: BotGuildList) => void,
   ): ClientUnaryCall;
-  getChannels(
+  getGuilds(
     request: Empty,
     metadata: Metadata,
     options: Partial<CallOptions>,
-    callback: (error: ServiceError | null, response: ChannelList) => void,
+    callback: (error: ServiceError | null, response: BotGuildList) => void,
+  ): ClientUnaryCall;
+  getChannels(
+    request: ChannelRequest,
+    callback: (error: ServiceError | null, response: BotChannelList) => void,
+  ): ClientUnaryCall;
+  getChannels(
+    request: ChannelRequest,
+    metadata: Metadata,
+    callback: (error: ServiceError | null, response: BotChannelList) => void,
+  ): ClientUnaryCall;
+  getChannels(
+    request: ChannelRequest,
+    metadata: Metadata,
+    options: Partial<CallOptions>,
+    callback: (error: ServiceError | null, response: BotChannelList) => void,
   ): ClientUnaryCall;
   sendMessage(
-    request: MessageRequest,
+    request: SendMessageRequest,
     callback: (error: ServiceError | null, response: MessageResponse) => void,
   ): ClientUnaryCall;
   sendMessage(
-    request: MessageRequest,
+    request: SendMessageRequest,
     metadata: Metadata,
     callback: (error: ServiceError | null, response: MessageResponse) => void,
   ): ClientUnaryCall;
   sendMessage(
-    request: MessageRequest,
+    request: SendMessageRequest,
     metadata: Metadata,
     options: Partial<CallOptions>,
     callback: (error: ServiceError | null, response: MessageResponse) => void,
