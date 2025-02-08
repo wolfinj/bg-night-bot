@@ -5,6 +5,9 @@ import tseslint from "typescript-eslint";
 
 /** @type {import('eslint').Linter.Config[]} */
 export default [
+    {
+        ignores: ["src/generated/"],
+    },
     {files: ["**/*.{ts}", "**/*.{svg}"]},
     {languageOptions: {globals: globals.browser}},
     pluginJs.configs.recommended,
