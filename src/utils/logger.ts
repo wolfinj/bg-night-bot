@@ -2,6 +2,8 @@ import winston from "winston";
 
 import {cfg} from "../config/config";
 
+import {defaultReplacer} from "./JsonTransformer";
+
 // Create an array of transports starting with the Console transport
 const transports: winston.transport[] = [
     new winston.transports.Console()
@@ -35,7 +37,7 @@ export const logger = winston.createLogger({
                 metadata: { data?: unknown };
             };
 
-            const meta = metadata.data ? `${JSON.stringify(metadata.data)}` : '';
+            const meta = metadata.data ? `${JSON.stringify(metadata.data, defaultReplacer)}` : '';
             return `[${timestamp}] ${level}: ${message} ${meta}`;
         })
     ),

@@ -13,15 +13,23 @@ export const client = new Client({
 });
 
 // Get all event names as valid ClientEvents keys
-const discordEvents = Object.values(Events);
+const discordEvents: string[] = Object.values(Events);
 
-discordEvents.forEach((eventName) => {
+discordEvents.forEach((eventName: string) => {
     client.on(eventName.toString(), (...args: unknown[]) => {
         if (eventName === Events.ClientReady) {
             const readyClient = args[0] as Client<true>;
-            logger.info(`Discord client ready. Logged in as ${readyClient.user.tag}`);
+            logger.info(`[Discord Ready] Logged in as ${readyClient.user.tag}`);
         } else if (eventName === Events.Debug) {
             logger.debug(`[Discord Debug]`, {
+                data: args[0]
+            });
+        } else if (eventName === Events.Error) {
+            logger.debug(`[Discord Error]`, {
+                data: args[0]
+            });
+        } else if (eventName === Events.Warn) {
+            logger.debug(`[Discord Warn]`, {
                 data: args[0]
             });
         } else if (eventName === Events.Raw) {
