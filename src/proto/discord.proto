@@ -1,65 +1,242 @@
 syntax = "proto3";
 
+/**
+ * @package discord
+ * 
+ * The Discord package defines RPC services and messages for interacting with a Discord bot.
+ * This service enables retrieving the list of available guilds/channels, sending messages,
+ * and deleting messages. Each method and message is documented to describe its purpose,
+ * expected values (such as Discord Snowflake IDs), and responses.
+ */
 package discord;
 
+/**
+ * DiscordBot is the main gRPC service for communicating with the Discord bot.
+ * It provides the following RPC methods:
+ *   - GetGuilds: Retrieve a list of Discord guilds (servers) the bot is connected to.
+ *   - GetChannels: List channels (both text and voice) for a specific guild.
+ *   - SendMessage: Post a message to a specified channel in a guild.
+ *   - DeleteMessage: Remove a message from a specified channel.
+ */
 service DiscordBot {
+  /**
+   * Retrieves a list of all guilds (servers) the bot is connected to.
+   * 
+   * @param Empty - An empty request message (no parameters needed).
+   * @returns BotGuildList - A response message containing a list of guilds.
+   */
   rpc GetGuilds (Empty) returns (BotGuildList) {}
+
+  /**
+   * Lists text/voice channels in a specific guild.
+   *
+   * @param ChannelRequest - The request message containing the guild's Discord Snowflake ID 
+   *                         (e.g., "123456789012345678") for which channels will be listed.
+   * @returns BotChannelList - A response message comprising a collection of channels in the guild.
+   */
   rpc GetChannels (ChannelRequest) returns (BotChannelList) {}
+
+  /**
+   * Sends a message to a specified channel within a guild.
+   *
+   * @param SendMessageRequest - The request message containing:
+   *   - guild_id: Discord Snowflake ID for the guild.
+   *   - channel_id: Discord Snowflake ID for the channel.
+   *   - content: The text message to be sent.
+   * @returns MessageResponse - A response message indicating if the operation was successful,
+   *                            along with an optional message and the generated message ID.
+   */
   rpc SendMessage (SendMessageRequest) returns (MessageResponse) {}
+
+  /**
+   * Deletes a specified message from a channel within a guild.
+   *
+   * @param DeleteMessageRequest - The request message containing:
+   *   - guild_id: Discord Snowflake ID for the guild.
+   *   - channel_id: Discord Snowflake ID for the channel.
+   *   - message_id: Discord Snowflake ID for the message to delete.
+   * @returns DeleteMessageResponse - A response message indicating if the deletion succeeded,
+   *                                  along with a status message.
+   */
   rpc DeleteMessage (DeleteMessageRequest) returns (DeleteMessageResponse) {}
 }
 
+/**
+ * Empty is an empty message, used when no parameters are needed.
+ */
 message Empty {}
 
+/**
+ * BotGuildList contains a list of guilds.
+ */
 message BotGuildList {
+  /**
+   * A list of guilds available to the bot.
+   */
   repeated BotGuild guilds = 1;
 }
 
+/**
+ * ChannelRequest is the request message used for fetching channels of a specified guild.
+ */
 message ChannelRequest {
-  string guild_id = 1; // Snowflake
+  /**
+   * The unique Discord Snowflake ID of the guild.
+   */
+  string guild_id = 1;
 }
 
+/**
+ * BotGuild represents a Discord guild (server).
+ */
 message BotGuild {
+  /**
+   * The unique identifier for the guild.
+   */
   string id = 1;
+  
+  /**
+   * The display name of the guild.
+   */
   string name = 2;
+  
+  /**
+   * The number of members in the guild.
+   */
   int32 member_count = 3;
+  
+  /**
+   * The unique Discord Snowflake ID of the guild owner.
+   */
   string owner_id = 4;
+  
+  /**
+   * The guild's icon URL (if available).
+   */
   optional string icon = 5;
+  
+  /**
+   * A brief description of the guild, if provided.
+   */
   optional string description = 6;
+  
+  /**
+   * The creation timestamp of the guild.
+   */
   string created_at = 7;
 }
 
+/**
+ * BotChannel represents a channel within a Discord guild.
+ */
 message BotChannel {
-  string id = 1;  // Snowflake
+  /**
+   * The unique identifier for the channel (Discord Snowflake).
+   */
+  string id = 1;
+  
+  /**
+   * The name of the channel.
+   */
   string name = 2;
+  
+  /**
+   * The internal type identifier for the channel (e.g., text, voice).
+   */
   string type = 3;
+  
+  /**
+   * A human-readable name of the channel type (e.g., "Text Channel" or "Voice Channel").
+   */
   string typeName = 4;
+  
+  /**
+   * The topic of the channel, if applicable.
+   */
   optional string topic = 5;
 }
 
+/**
+ * BotChannelList contains a list of channels in a guild.
+ */
 message BotChannelList {
+  /**
+   * A list of channels found in the guild.
+   */
   repeated BotChannel channels = 1;
 }
 
+/**
+ * SendMessageRequest is used to request sending a message to a specified channel within a guild.
+ */
 message SendMessageRequest {
-  string guild_id = 1;     // Snowflake
-  string channel_id = 2;   // Snowflake
+  /**
+   * The Discord Snowflake ID of the guild where the message will be sent.
+   */
+  string guild_id = 1;
+  
+  /**
+   * The Discord Snowflake ID of the channel where the message will be posted.
+   */
+  string channel_id = 2;
+  
+  /**
+   * The content of the message.
+   */
   string content = 3;
 }
 
+/**
+ * MessageResponse is the response message for sending a message.
+ */
 message MessageResponse {
+  /**
+   * Indicates whether the message was sent successfully.
+   */
   bool success = 1;
+  
+  /**
+   * A message describing the outcome of the send operation.
+   */
   string message = 2;
+  
+  /**
+   * The unique identifier of the sent message (if successful).
+   */
   string message_id = 3;
 }
 
+/**
+ * DeleteMessageRequest is used to request deletion of a specific message.
+ */
 message DeleteMessageRequest {
-  string guild_id = 1;     // Snowflake
-  string channel_id = 2;   // Snowflake
+  /**
+   * The Discord Snowflake ID of the guild where the deletion should occur.
+   */
+  string guild_id = 1;
+  
+  /**
+   * The Discord Snowflake ID of the channel from which the message should be deleted.
+   */
+  string channel_id = 2;
+  
+  /**
+   * The Discord Snowflake ID of the message to delete.
+   */
   string message_id = 3;
 }
 
+/**
+ * DeleteMessageResponse is the response message after attempting to delete a message.
+ */
 message DeleteMessageResponse {
+  /**
+   * Indicates whether the message deletion was successful.
+   */
   bool success = 1;
+  
+  /**
+   * A message describing the outcome of the deletion operation.
+   */
   string message = 2;
 }

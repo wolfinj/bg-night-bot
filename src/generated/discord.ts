@@ -21,65 +21,99 @@ import {
 
 export const protobufPackage = "discord";
 
+/** Empty is an empty message, used when no parameters are needed. */
 export interface Empty {
 }
 
+/** BotGuildList contains a list of guilds. */
 export interface BotGuildList {
+  /** A list of guilds available to the bot. */
   guilds: BotGuild[];
 }
 
+/** ChannelRequest is the request message used for fetching channels of a specified guild. */
 export interface ChannelRequest {
-  /** Snowflake */
+  /** The unique Discord Snowflake ID of the guild. */
   guildId: string;
 }
 
+/** BotGuild represents a Discord guild (server). */
 export interface BotGuild {
+  /** The unique identifier for the guild. */
   id: string;
+  /** The display name of the guild. */
   name: string;
+  /** The number of members in the guild. */
   memberCount: number;
+  /** The unique Discord Snowflake ID of the guild owner. */
   ownerId: string;
-  icon?: string | undefined;
-  description?: string | undefined;
+  /** The guild's icon URL (if available). */
+  icon?:
+    | string
+    | undefined;
+  /** A brief description of the guild, if provided. */
+  description?:
+    | string
+    | undefined;
+  /** The creation timestamp of the guild. */
   createdAt: string;
 }
 
+/** BotChannel represents a channel within a Discord guild. */
 export interface BotChannel {
-  /** Snowflake */
+  /** The unique identifier for the channel (Discord Snowflake). */
   id: string;
+  /** The name of the channel. */
   name: string;
+  /** The internal type identifier for the channel (e.g., text, voice). */
   type: string;
+  /** A human-readable name of the channel type (e.g., "Text Channel" or "Voice Channel"). */
   typeName: string;
+  /** The topic of the channel, if applicable. */
   topic?: string | undefined;
 }
 
+/** BotChannelList contains a list of channels in a guild. */
 export interface BotChannelList {
+  /** A list of channels found in the guild. */
   channels: BotChannel[];
 }
 
+/** SendMessageRequest is used to request sending a message to a specified channel within a guild. */
 export interface SendMessageRequest {
-  /** Snowflake */
+  /** The Discord Snowflake ID of the guild where the message will be sent. */
   guildId: string;
-  /** Snowflake */
+  /** The Discord Snowflake ID of the channel where the message will be posted. */
   channelId: string;
+  /** The content of the message. */
   content: string;
 }
 
+/** MessageResponse is the response message for sending a message. */
 export interface MessageResponse {
+  /** Indicates whether the message was sent successfully. */
   success: boolean;
+  /** A message describing the outcome of the send operation. */
   message: string;
+  /** The unique identifier of the sent message (if successful). */
   messageId: string;
 }
 
+/** DeleteMessageRequest is used to request deletion of a specific message. */
 export interface DeleteMessageRequest {
-  /** Snowflake */
+  /** The Discord Snowflake ID of the guild where the deletion should occur. */
   guildId: string;
-  /** Snowflake */
+  /** The Discord Snowflake ID of the channel from which the message should be deleted. */
   channelId: string;
+  /** The Discord Snowflake ID of the message to delete. */
   messageId: string;
 }
 
+/** DeleteMessageResponse is the response message after attempting to delete a message. */
 export interface DeleteMessageResponse {
+  /** Indicates whether the message deletion was successful. */
   success: boolean;
+  /** A message describing the outcome of the deletion operation. */
   message: string;
 }
 
@@ -938,8 +972,22 @@ export const DeleteMessageResponse: MessageFns<DeleteMessageResponse> = {
   },
 };
 
+/**
+ * DiscordBot is the main gRPC service for communicating with the Discord bot.
+ * It provides the following RPC methods:
+ *   - GetGuilds: Retrieve a list of Discord guilds (servers) the bot is connected to.
+ *   - GetChannels: List channels (both text and voice) for a specific guild.
+ *   - SendMessage: Post a message to a specified channel in a guild.
+ *   - DeleteMessage: Remove a message from a specified channel.
+ */
 export type DiscordBotService = typeof DiscordBotService;
 export const DiscordBotService = {
+  /**
+   * Retrieves a list of all guilds (servers) the bot is connected to.
+   *
+   * @param Empty - An empty request message (no parameters needed).
+   * @returns BotGuildList - A response message containing a list of guilds.
+   */
   getGuilds: {
     path: "/discord.DiscordBot/GetGuilds",
     requestStream: false,
@@ -949,6 +997,13 @@ export const DiscordBotService = {
     responseSerialize: (value: BotGuildList) => Buffer.from(BotGuildList.encode(value).finish()),
     responseDeserialize: (value: Buffer) => BotGuildList.decode(value),
   },
+  /**
+   * Lists text/voice channels in a specific guild.
+   *
+   * @param ChannelRequest - The request message containing the guild's Discord Snowflake ID
+   *                         (e.g., "123456789012345678") for which channels will be listed.
+   * @returns BotChannelList - A response message comprising a collection of channels in the guild.
+   */
   getChannels: {
     path: "/discord.DiscordBot/GetChannels",
     requestStream: false,
@@ -958,6 +1013,16 @@ export const DiscordBotService = {
     responseSerialize: (value: BotChannelList) => Buffer.from(BotChannelList.encode(value).finish()),
     responseDeserialize: (value: Buffer) => BotChannelList.decode(value),
   },
+  /**
+   * Sends a message to a specified channel within a guild.
+   *
+   * @param SendMessageRequest - The request message containing:
+   *   - guild_id: Discord Snowflake ID for the guild.
+   *   - channel_id: Discord Snowflake ID for the channel.
+   *   - content: The text message to be sent.
+   * @returns MessageResponse - A response message indicating if the operation was successful,
+   *                            along with an optional message and the generated message ID.
+   */
   sendMessage: {
     path: "/discord.DiscordBot/SendMessage",
     requestStream: false,
@@ -967,6 +1032,16 @@ export const DiscordBotService = {
     responseSerialize: (value: MessageResponse) => Buffer.from(MessageResponse.encode(value).finish()),
     responseDeserialize: (value: Buffer) => MessageResponse.decode(value),
   },
+  /**
+   * Deletes a specified message from a channel within a guild.
+   *
+   * @param DeleteMessageRequest - The request message containing:
+   *   - guild_id: Discord Snowflake ID for the guild.
+   *   - channel_id: Discord Snowflake ID for the channel.
+   *   - message_id: Discord Snowflake ID for the message to delete.
+   * @returns DeleteMessageResponse - A response message indicating if the deletion succeeded,
+   *                                  along with a status message.
+   */
   deleteMessage: {
     path: "/discord.DiscordBot/DeleteMessage",
     requestStream: false,
@@ -979,13 +1054,52 @@ export const DiscordBotService = {
 } as const;
 
 export interface DiscordBotServer extends UntypedServiceImplementation {
+  /**
+   * Retrieves a list of all guilds (servers) the bot is connected to.
+   *
+   * @param Empty - An empty request message (no parameters needed).
+   * @returns BotGuildList - A response message containing a list of guilds.
+   */
   getGuilds: handleUnaryCall<Empty, BotGuildList>;
+  /**
+   * Lists text/voice channels in a specific guild.
+   *
+   * @param ChannelRequest - The request message containing the guild's Discord Snowflake ID
+   *                         (e.g., "123456789012345678") for which channels will be listed.
+   * @returns BotChannelList - A response message comprising a collection of channels in the guild.
+   */
   getChannels: handleUnaryCall<ChannelRequest, BotChannelList>;
+  /**
+   * Sends a message to a specified channel within a guild.
+   *
+   * @param SendMessageRequest - The request message containing:
+   *   - guild_id: Discord Snowflake ID for the guild.
+   *   - channel_id: Discord Snowflake ID for the channel.
+   *   - content: The text message to be sent.
+   * @returns MessageResponse - A response message indicating if the operation was successful,
+   *                            along with an optional message and the generated message ID.
+   */
   sendMessage: handleUnaryCall<SendMessageRequest, MessageResponse>;
+  /**
+   * Deletes a specified message from a channel within a guild.
+   *
+   * @param DeleteMessageRequest - The request message containing:
+   *   - guild_id: Discord Snowflake ID for the guild.
+   *   - channel_id: Discord Snowflake ID for the channel.
+   *   - message_id: Discord Snowflake ID for the message to delete.
+   * @returns DeleteMessageResponse - A response message indicating if the deletion succeeded,
+   *                                  along with a status message.
+   */
   deleteMessage: handleUnaryCall<DeleteMessageRequest, DeleteMessageResponse>;
 }
 
 export interface DiscordBotClient extends Client {
+  /**
+   * Retrieves a list of all guilds (servers) the bot is connected to.
+   *
+   * @param Empty - An empty request message (no parameters needed).
+   * @returns BotGuildList - A response message containing a list of guilds.
+   */
   getGuilds(request: Empty, callback: (error: ServiceError | null, response: BotGuildList) => void): ClientUnaryCall;
   getGuilds(
     request: Empty,
@@ -998,6 +1112,13 @@ export interface DiscordBotClient extends Client {
     options: Partial<CallOptions>,
     callback: (error: ServiceError | null, response: BotGuildList) => void,
   ): ClientUnaryCall;
+  /**
+   * Lists text/voice channels in a specific guild.
+   *
+   * @param ChannelRequest - The request message containing the guild's Discord Snowflake ID
+   *                         (e.g., "123456789012345678") for which channels will be listed.
+   * @returns BotChannelList - A response message comprising a collection of channels in the guild.
+   */
   getChannels(
     request: ChannelRequest,
     callback: (error: ServiceError | null, response: BotChannelList) => void,
@@ -1013,6 +1134,16 @@ export interface DiscordBotClient extends Client {
     options: Partial<CallOptions>,
     callback: (error: ServiceError | null, response: BotChannelList) => void,
   ): ClientUnaryCall;
+  /**
+   * Sends a message to a specified channel within a guild.
+   *
+   * @param SendMessageRequest - The request message containing:
+   *   - guild_id: Discord Snowflake ID for the guild.
+   *   - channel_id: Discord Snowflake ID for the channel.
+   *   - content: The text message to be sent.
+   * @returns MessageResponse - A response message indicating if the operation was successful,
+   *                            along with an optional message and the generated message ID.
+   */
   sendMessage(
     request: SendMessageRequest,
     callback: (error: ServiceError | null, response: MessageResponse) => void,
@@ -1028,6 +1159,16 @@ export interface DiscordBotClient extends Client {
     options: Partial<CallOptions>,
     callback: (error: ServiceError | null, response: MessageResponse) => void,
   ): ClientUnaryCall;
+  /**
+   * Deletes a specified message from a channel within a guild.
+   *
+   * @param DeleteMessageRequest - The request message containing:
+   *   - guild_id: Discord Snowflake ID for the guild.
+   *   - channel_id: Discord Snowflake ID for the channel.
+   *   - message_id: Discord Snowflake ID for the message to delete.
+   * @returns DeleteMessageResponse - A response message indicating if the deletion succeeded,
+   *                                  along with a status message.
+   */
   deleteMessage(
     request: DeleteMessageRequest,
     callback: (error: ServiceError | null, response: DeleteMessageResponse) => void,

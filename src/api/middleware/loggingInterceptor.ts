@@ -24,17 +24,11 @@ export const loggingInterceptor: grpc.ServerInterceptor = (
                 maskedMetadata["x-api-key"] = ["*****"];
             }
 
-            logger.info(
-                `Received metadata - Method: ${methodDescriptor.path}, Metadata: ${JSON.stringify(maskedMetadata)}`
-            );
+            logger.info(`[gRpc Received metadata] - Method: ${methodDescriptor.path}`, {data: maskedMetadata});
             next(metadata);
         })
         .withOnReceiveMessage((message, next) => {
-            logger.info(
-                `Received message - Method: ${methodDescriptor.path}, Message: ${JSON.stringify(
-                    message
-                )}`
-            );
+            logger.info(`[gRpc Received message] - Method: ${methodDescriptor.path}`, {data: message});
             next(message);
         })
         .build();
@@ -43,20 +37,22 @@ export const loggingInterceptor: grpc.ServerInterceptor = (
     const responder = new ResponderBuilder()
         .withStart((next) => next(listener))
         .withSendMessage((message, next) => {
-            logger.info(
-                `Sending message - Method: ${methodDescriptor.path}, Message: ${JSON.stringify(message)}`
-            );
+            logger.info(`[gRpc Sending message] - Method: ${methodDescriptor.path}`, {data: message});
             next(message);
         })
         .withSendStatus((status, next) => {
             const duration = Date.now() - startTime;
-            if (status.code !== grpc.status.OK) {
+            if (status.code === grpc.status.UNAUTHENTICATED) {
+                logger.warn(
+                    `[gRpc Response status] - Method: ${methodDescriptor.path}, Code: ${status.code}, Details: ${status.details}, Caller: ${call.getPeer()}, Duration: ${duration}ms`
+                );
+            } else if (status.code !== grpc.status.OK) {
                 logger.error(
-                    `Response status - Method: ${methodDescriptor.path}, Code: ${status.code}, Details: ${status.details}, Duration: ${duration}ms`
+                    `[gRpc Response status] - Method: ${methodDescriptor.path}, Code: ${status.code}, Details: ${status.details}, Duration: ${duration}ms`
                 );
             } else {
                 logger.info(
-                    `Response status - Method: ${methodDescriptor.path}, Code: ${status.code}, Details: ${status.details}, Duration: ${duration}ms`
+                    `[gRpc Response status] - Method: ${methodDescriptor.path}, Code: ${status.code}, Details: ${status.details}, Duration: ${duration}ms`
                 );
             }
             next(status);

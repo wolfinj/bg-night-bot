@@ -4,6 +4,15 @@ import * as grpc from "@grpc/grpc-js";
 import {sendChannelMessage} from "../../bot/services";
 import {MessageResponse, SendMessageRequest} from "../../generated/discord";
 
+/**
+ * gRPC service method to send a message to a Discord channel.
+ *
+ * Extracts guildId, channelId, and content from the SendMessageRequest provided in the gRPC call.
+ * Uses the sendChannelMessage service method to send the message and returns the response via the callback.
+ *
+ * @param call - The gRPC call containing a SendMessageRequest.
+ * @param callback - The callback function to return a MessageResponse or an error.
+ */
 export const sendMessage: handleUnaryCall<SendMessageRequest, MessageResponse> = async (
     call: ServerUnaryCall<SendMessageRequest, MessageResponse>,
     callback: sendUnaryData<MessageResponse>) => {

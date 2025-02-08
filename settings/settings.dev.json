@@ -1,7 +1,7 @@
 {
   "bggApiUrl": "https://www.boardgamegeek.com/xmlapi2",
   "logger": {
-    "logLevel": "info",
+    "logLevel": "debug",
     "logToFile": true,
     "logFilePath": "logs",
     "fileLogLevel": "info"

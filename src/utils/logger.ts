@@ -24,9 +24,19 @@ if (cfg.logger.logToFile) {
 export const logger = winston.createLogger({
     level: cfg.logger.logLevel,
     format: winston.format.combine(
+        winston.format.metadata({fillExcept: ["message", "level", "timestamp"]}),
         winston.format.timestamp(),
-        winston.format.printf(({timestamp, level, message}) => {
-            return `[${timestamp}] ${level}: ${message}`;
+        winston.format.printf((info) => {
+            // Define proper types for the log info
+            const { timestamp, level, message, metadata } = info as {
+                timestamp: string;
+                level: string;
+                message: string;
+                metadata: { data?: unknown };
+            };
+
+            const meta = metadata.data ? `${JSON.stringify(metadata.data)}` : '';
+            return `[${timestamp}] ${level}: ${message} ${meta}`;
         })
     ),
     transports
